@@ -54,7 +54,7 @@
   --s-lead: clamp(1.125rem, 1rem + 0.4vw, 1.3125rem);
   --s-title: clamp(1.55rem, 1.2rem + 1vw, 2.125rem);
   --s-section: clamp(2.75rem, 1.8rem + 3.6vw, 5rem);
-  --s-hero: clamp(3.9rem, 0.6rem + 14vw, 14rem);
+  --s-hero: min(14rem, calc((100vw - 2 * var(--gutter) - 25rem) / 4.9));
 
   --gutter: clamp(1rem, 0.4rem + 2.6vw, 3rem);
   --maxw: 1440px;
@@ -217,6 +217,7 @@ h1, h2, h3 { text-wrap: balance; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
+  :root { --s-hero: min(9rem, calc((100vw - 2 * var(--gutter)) / 4.9)); }
   .hero-inner { grid-template-columns: minmax(0, 1fr); }
   .section-head, .about-body, .studio { grid-template-columns: minmax(0, 1fr); }
   .works { grid-template-columns: repeat(2, minmax(0, 1fr)); }
