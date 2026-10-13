@@ -1148,9 +1148,11 @@ function makeProgram(gl, fsSrc) {
 /* createHero
    Sets up the full-bleed hero painting: a WebGL2 context sized to the
    canvas at a capped pixel ratio, pointer tracking that eases a swirl
-   toward wherever the visitor moves, and visibility tracking so the
-   shader stops working once it scrolls out of view. Returns an object
-   whose draw(t) renders one frame, or null when WebGL2 is unavailable. */
+   toward wherever the visitor moves or taps, and visibility tracking so
+   the shader stops working once it scrolls out of view. Returns an object
+   whose draw(t) renders one frame, or null when WebGL2 is unavailable.
+   If onStir is set on that object, it is called on every pointer event
+   (the reduced-motion mode uses it to animate only while being touched). */
 function createHero() {
   const canvas = document.getElementById('hero-canvas');
   const section = document.getElementById('hero');
@@ -1174,14 +1176,19 @@ function createHero() {
   new ResizeObserver(resize).observe(canvas);
   resize();
 
-  /* onPointer: convert the pointer to the shader's centred, height-normalised space */
+  /* onPointer: convert the pointer to the shader's centred, height-normalised
+     space and kick the swirl. A tap (pointerdown) jumps the swirl straight to
+     the finger so it stirs from where you touched, instead of easing over. */
   function onPointer(e) {
     const r = canvas.getBoundingClientRect();
     state.target.x = (e.clientX - r.left - r.width * 0.5) / r.height;
     state.target.y = (r.height * 0.5 - (e.clientY - r.top)) / r.height;
+    if (e.type === 'pointerdown') { state.pointer.x = state.target.x; state.pointer.y = state.target.y; }
     state.amtTarget = 1;
+    if (api.onStir) api.onStir();
   }
-  if (!reduceMotion) section.addEventListener('pointermove', onPointer, { passive: true });
+  section.addEventListener('pointermove', onPointer, { passive: true });
+  section.addEventListener('pointerdown', onPointer, { passive: true });
 
   new IntersectionObserver(entries => { state.visible = entries[0].isIntersecting; }).observe(section);
 
@@ -1202,7 +1209,8 @@ function createHero() {
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     state.dirty = false;
   }
-  return { draw, state };
+  const api = { draw, state, onStir: null };
+  return api;
 }
 
 /* ======================================================================
@@ -1470,7 +1478,8 @@ function setupNav() {
 
 /* boot
    Starts everything. With reduced motion, each canvas gets one still
-   frame (repainted on resize); otherwise a single requestAnimationFrame
+   frame (repainted on resize) and the hero only moves while being touched;
+   otherwise a single requestAnimationFrame
    loop drives the hero at display rate and the sketches at TILE_FPS. */
 function boot() {
   setupClips();
@@ -1488,6 +1497,18 @@ function boot() {
     };
     still();
     window.addEventListener('resize', () => requestAnimationFrame(still));
+    // The painting stays still on its own but can be stirred by hand: while
+    // the visitor is touching it, animate only the swirl (the clock stays
+    // frozen) and stop again once the swirl has settled.
+    if (hero) {
+      let stirring = false;
+      const stirLoop = () => {
+        hero.draw(TUNING.STILL_TIME);
+        if (hero.state.amt > 0.01 || hero.state.amtTarget > 0.01) requestAnimationFrame(stirLoop);
+        else stirring = false;
+      };
+      hero.onStir = () => { if (!stirring) { stirring = true; requestAnimationFrame(stirLoop); } };
+    }
     return;
   }
 
