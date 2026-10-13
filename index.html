@@ -1419,6 +1419,8 @@ function setupClips() {
    Work-section videos load nothing until they come near the screen, then
    play silently on a loop like a moving painting, and pause again once they
    scroll away. The Sound button unmutes (and starts playback if needed).
+   Browsers pause muted video in background tabs, so playback is also
+   resumed when the tab comes back into view.
    With reduced motion they stay on their poster until Sound is pressed. */
 function setupLoops() {
   document.querySelectorAll('video.loop').forEach(v => {
@@ -1434,11 +1436,14 @@ function setupLoops() {
         if (!v.muted || !reduceMotion) tryPlay(); else v.pause();
       });
     }
+    const wanted = () => visible && document.visibilityState === 'visible' && (!reduceMotion || !v.muted);
     new IntersectionObserver(entries => {
       visible = entries[0].isIntersecting;
-      if (visible && (!reduceMotion || !v.muted)) { v.preload = 'auto'; tryPlay(); }
+      if (wanted()) { v.preload = 'auto'; tryPlay(); }
       else if (!visible) v.pause();
     }, { rootMargin: '200px 0px' }).observe(v);
+    document.addEventListener('visibilitychange', () => { if (wanted() && v.paused) tryPlay(); });
+    v.addEventListener('canplay', () => { if (wanted() && v.paused) tryPlay(); });
   });
 }
 
