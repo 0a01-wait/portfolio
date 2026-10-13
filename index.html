@@ -141,7 +141,14 @@ h1, h2, h3 { text-wrap: balance; }
 .work:nth-child(6) { grid-column: 7 / span 6; --ar: 3 / 2; margin-top: clamp(0rem, 7vw, 7rem); }
 .work:nth-child(7) { grid-column: 1 / span 6; }
 .work:nth-child(8) { grid-column: 8 / span 5; margin-top: clamp(0rem, 6vw, 6rem); }
+.work:nth-child(9) { grid-column: 4 / span 5; }
 .work .clip { box-shadow: 0 36px 60px -34px var(--shadow); }
+.sound {
+  position: absolute; left: 1rem; bottom: 1rem; z-index: 1;
+  font: 500 var(--s-label) / 1 var(--f-mono); letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--bone); background: var(--scrim); border: 0; padding: 0.6rem 0.85rem; cursor: pointer;
+}
+.sound:hover, .sound[aria-pressed="true"] { color: var(--cadmium); }
 .label .medium a { color: var(--ash); }
 .label .medium a:hover { color: var(--cadmium); }
 
@@ -229,6 +236,7 @@ h1, h2, h3 { text-wrap: balance; }
   .works { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .works > .work:nth-child(n) { grid-column: auto; margin-top: 0; }
   .works > .work:nth-child(1), .works > .work:nth-child(6) { grid-column: 1 / -1; }
+  .works > .work:nth-child(9) { grid-column: 1 / -1; width: min(100%, 34rem); justify-self: center; }
 }
 @media (max-width: 600px) {
   .works, .studio dl { grid-template-columns: minmax(0, 1fr); }
@@ -352,6 +360,17 @@ h1, h2, h3 { text-wrap: balance; }
           <h3>Frog &amp; Toad go to Mongolia</h3>
           <p class="medium">Video, 0:41 · Modular synth, GLSL · <a href="https://vimeo.com/1155612385" target="_blank" rel="noopener">Vimeo</a></p>
           <p class="text">A real-time domain-warping study: one field folded through itself again and again.</p>
+        </figcaption>
+      </figure>
+
+      <figure class="work">
+        <div class="work-media" style="--ar: 1 / 1">
+          <video class="loop" src="cleanup-in-aisle-3-14.mp4" poster="cleanup-in-aisle-3-14.jpg" muted loop playsinline preload="none" aria-label="Cleanup in aisle 3.14, video"></video>
+          <button class="sound" type="button" aria-pressed="false">Sound off</button>
+        </div>
+        <figcaption class="label">
+          <h3>Cleanup in aisle 3.14</h3>
+          <p class="medium">Video, 1:07</p>
         </figcaption>
       </figure>
     </div>
@@ -1388,6 +1407,33 @@ function setupClips() {
   });
 }
 
+/* setupLoops
+   Work-section videos load nothing until they come near the screen, then
+   play silently on a loop like a moving painting, and pause again once they
+   scroll away. The Sound button unmutes (and starts playback if needed).
+   With reduced motion they stay on their poster until Sound is pressed. */
+function setupLoops() {
+  document.querySelectorAll('video.loop').forEach(v => {
+    const btn = v.parentElement.querySelector('.sound');
+    let visible = false;
+    const tryPlay = () => { const p = v.play(); if (p && p.catch) p.catch(() => {}); };
+    if (btn) {
+      if (reduceMotion) btn.textContent = 'Play';
+      btn.addEventListener('click', () => {
+        v.muted = !v.muted;
+        btn.setAttribute('aria-pressed', String(!v.muted));
+        btn.textContent = v.muted ? 'Sound off' : 'Sound on';
+        if (!v.muted || !reduceMotion) tryPlay(); else v.pause();
+      });
+    }
+    new IntersectionObserver(entries => {
+      visible = entries[0].isIntersecting;
+      if (visible && (!reduceMotion || !v.muted)) { v.preload = 'auto'; tryPlay(); }
+      else if (!visible) v.pause();
+    }, { rootMargin: '200px 0px' }).observe(v);
+  });
+}
+
 /* setupCopy
    Copies the email address to the clipboard; if the clipboard is refused,
    selects the address so it can be copied by hand. */
@@ -1428,6 +1474,7 @@ function setupNav() {
    loop drives the hero at display rate and the sketches at TILE_FPS. */
 function boot() {
   setupClips();
+  setupLoops();
   setupCopy();
   setupNav();
   const hero = createHero();
