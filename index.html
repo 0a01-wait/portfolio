@@ -133,15 +133,15 @@ h1, h2, h3 { text-wrap: balance; }
 .work { margin: 0; display: grid; gap: 1.15rem; min-width: 0; }
 .work-media { position: relative; aspect-ratio: var(--ar, 4 / 3); max-width: 100%; background: var(--wall-raised); box-shadow: 0 36px 60px -34px var(--shadow); overflow: hidden; }
 .work-media > canvas, .work-media > video, .work-media > img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover; }
-.work:nth-child(1) { grid-column: 1 / span 7; --ar: 3 / 2; }
-.work:nth-child(2) { grid-column: 9 / span 4; --ar: 4 / 5; margin-top: clamp(0rem, 9vw, 9rem); }
-.work:nth-child(3) { grid-column: 2 / span 6; --ar: 16 / 10; }
-.work:nth-child(4) { grid-column: 9 / span 4; --ar: 1 / 1; margin-top: clamp(0rem, 5vw, 5rem); }
-.work:nth-child(5) { grid-column: 1 / span 5; --ar: 4 / 3; }
-.work:nth-child(6) { grid-column: 7 / span 6; --ar: 3 / 2; margin-top: clamp(0rem, 7vw, 7rem); }
-.work:nth-child(7) { grid-column: 1 / span 6; }
-.work:nth-child(8) { grid-column: 8 / span 5; margin-top: clamp(0rem, 6vw, 6rem); }
-.work:nth-child(9) { grid-column: 4 / span 5; }
+.work:nth-child(1) { grid-column: 1 / -1; }
+.work:nth-child(2) { grid-column: 1 / span 7; --ar: 3 / 2; }
+.work:nth-child(3) { grid-column: 9 / span 4; --ar: 4 / 5; margin-top: clamp(0rem, 9vw, 9rem); }
+.work:nth-child(4) { grid-column: 2 / span 5; --ar: 1 / 1; }
+.work:nth-child(5) { grid-column: 8 / span 5; --ar: 4 / 3; margin-top: clamp(0rem, 5vw, 5rem); }
+.work:nth-child(6) { grid-column: 1 / span 6; --ar: 3 / 2; }
+.work:nth-child(7) { grid-column: 8 / span 5; margin-top: clamp(0rem, 6vw, 6rem); }
+.work:nth-child(8) { grid-column: 1 / span 6; }
+.work:nth-child(9) { grid-column: 8 / span 5; margin-top: clamp(0rem, 6vw, 6rem); }
 .work .clip { box-shadow: 0 36px 60px -34px var(--shadow); }
 .sound {
   position: absolute; left: 1rem; bottom: 1rem; z-index: 1;
@@ -235,13 +235,12 @@ h1, h2, h3 { text-wrap: balance; }
   .clip-fig { grid-column: auto; }
   .works { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .works > .work:nth-child(n) { grid-column: auto; margin-top: 0; }
-  .works > .work:nth-child(1), .works > .work:nth-child(6) { grid-column: 1 / -1; }
-  .works > .work:nth-child(9) { grid-column: 1 / -1; width: min(100%, 34rem); justify-self: center; }
+  .works > .work:nth-child(1) { grid-column: 1 / -1; }
 }
 @media (max-width: 600px) {
   .works, .studio dl { grid-template-columns: minmax(0, 1fr); }
   .works > .work:nth-child(n) { grid-column: auto; }
-  .works > .work:nth-child(2) { --ar: 4 / 5; }
+  .works > .work:nth-child(3) { --ar: 4 / 5; }
   .nav { font-size: 0.75rem; }
   .nav-mark { display: none; }
   .hero::after { height: 78%; background: linear-gradient(to top, var(--wall) 0%, var(--wall) 22%, rgba(17,16,15,.82) 55%, rgba(17,16,15,0) 100%); }
@@ -286,6 +285,16 @@ h1, h2, h3 { text-wrap: balance; }
 
     <div class="works">
       <figure class="work">
+        <div class="work-media" style="--ar: 64 / 39">
+          <video class="loop" src="oramic.mp4" poster="oramic.jpg" muted loop playsinline preload="none" aria-label="Oramic, video"></video>
+        </div>
+        <figcaption class="label">
+          <h3>Oramic</h3>
+          <p class="medium">Instrument · openFrameworks, GLSL, MIDI / OSC / CV</p>
+          <p class="text">Turns pictures into sound. Colours, outlines and shapes in a video are read as notes and voltages and sent to a modular synthesizer. Named for Daphne Oram, who drew sound directly onto film.</p>
+        </figcaption>
+      </figure>
+      <figure class="work">
         <div class="work-media"><img src="abstractGenome.jpg" alt="AbstractGenome breeding new sketches"></div>
         <figcaption class="label">
           <h3>AbstractGenome</h3>
@@ -300,17 +309,6 @@ h1, h2, h3 { text-wrap: balance; }
           <h3>painterScope</h3>
           <p class="medium">Real-time software · KodeLife, openFrameworks, GLSL</p>
           <p class="text">Feed it any image or video and it never shows you the source. It pulls out the colours and repaints them as a Rothko. It began as Rothkoizer and now has profiles for Pollock, de Kooning, Frankenthaler and others.</p>
-        </figcaption>
-      </figure>
-
-      <figure class="work">
-        <div class="work-media">
-          <video class="loop" src="oramic.mp4" poster="oramic.jpg" muted loop playsinline preload="none" aria-label="Oramic, video"></video>
-        </div>
-        <figcaption class="label">
-          <h3>Oramic</h3>
-          <p class="medium">Instrument · openFrameworks, GLSL, MIDI / OSC / CV</p>
-          <p class="text">Turns pictures into sound. Colours, outlines and shapes in a video are read as notes and voltages and sent to a modular synthesizer. Named for Daphne Oram, who drew sound directly onto film.</p>
         </figcaption>
       </figure>
 
