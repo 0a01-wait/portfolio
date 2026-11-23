@@ -149,6 +149,15 @@ h1, h2, h3 { text-wrap: balance; }
   color: var(--bone); background: var(--scrim); border: 0; padding: 0.6rem 0.85rem; cursor: pointer;
 }
 .sound:hover, .sound[aria-pressed="true"] { color: var(--cadmium); }
+/* A tile with several clips (Oramic): one button per clip, bottom right,
+   in the Sound button's style; the clip playing is the red one. */
+.views { position: absolute; right: 1rem; bottom: 1rem; z-index: 1; display: flex; gap: 1px; }
+.view {
+  font: 500 var(--s-label) / 1 var(--f-mono); letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--bone-dim); background: var(--scrim); border: 0; padding: 0.6rem 0.85rem; cursor: pointer;
+}
+.view:hover { color: var(--bone); }
+.view[aria-pressed="true"] { color: var(--cadmium); }
 .label .medium a { color: var(--ash); }
 .label .medium a:hover { color: var(--cadmium); }
 
@@ -242,6 +251,8 @@ h1, h2, h3 { text-wrap: balance; }
   .works > .work:nth-child(n) { grid-column: auto; }
   .works > .work:nth-child(3) { --ar: 4 / 5; }
   .nav { font-size: 0.75rem; }
+  .views { top: 0.75rem; right: 0.75rem; bottom: auto; }
+  .view { padding: 0.5rem 0.6rem; }
   .nav-mark { display: none; }
   .hero::after { height: 78%; background: linear-gradient(to top, var(--wall) 0%, var(--wall) 22%, rgba(17,16,15,.82) 55%, rgba(17,16,15,0) 100%); }
   .nav { justify-content: flex-end; }
@@ -286,8 +297,13 @@ h1, h2, h3 { text-wrap: balance; }
     <div class="works">
       <figure class="work">
         <div class="work-media" style="--ar: 64 / 39">
-          <video class="loop" src="oramic.mp4" poster="oramic.jpg" muted loop playsinline preload="none" aria-label="Oramic, video"></video>
+          <video class="loop" src="oramic-controls.mp4" poster="oramic-controls.jpg" muted playsinline preload="none" aria-label="Oramic, video: the controls, playing a picture"></video>
           <button class="sound" type="button" aria-pressed="false">Sound off</button>
+          <div class="views" role="group" aria-label="Oramic views">
+            <button class="view" type="button" aria-pressed="true" data-src="oramic-controls.mp4" data-poster="oramic-controls.jpg" data-label="the controls, playing a picture">Controls</button>
+            <button class="view" type="button" aria-pressed="false" data-src="oramic-hud.mp4" data-poster="oramic-hud.jpg" data-label="the HUD, playing a picture">HUD</button>
+            <button class="view" type="button" aria-pressed="false" data-src="oramic-subway.mp4" data-poster="oramic-subway.jpg" data-label="the controls, playing live subway data">Subway</button>
+          </div>
         </div>
         <figcaption class="label">
           <h3>Oramic</h3>
@@ -1451,6 +1467,34 @@ function setupLoops() {
   });
 }
 
+/* setupViews
+   A tile with several clips (the .views buttons beside its video): a
+   button puts its clip, poster and label in the video and plays it from
+   the start; when a clip ends the next one follows (the last back to the
+   first), so all of them are seen without a click. Sound stays as it was
+   (muted or not), and with reduced motion a clip only plays once Sound or
+   a view button has been pressed. The visibility handling (play on
+   screen, pause off it) is setupLoops'. */
+function setupViews() {
+  document.querySelectorAll('.views').forEach(group => {
+    const v = group.parentElement.querySelector('video');
+    const btns = [...group.querySelectorAll('.view')];
+    if (!v || !btns.length) return;
+    let cur = Math.max(0, btns.findIndex(b => b.getAttribute('aria-pressed') === 'true'));
+    const show = (i, play) => {
+      cur = (i + btns.length) % btns.length;
+      const b = btns[cur];
+      btns.forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      v.poster = b.dataset.poster;
+      v.src = b.dataset.src;
+      v.setAttribute('aria-label', 'Oramic, video: ' + b.dataset.label);
+      if (play) { v.preload = 'auto'; const p = v.play(); if (p && p.catch) p.catch(() => {}); }
+    };
+    btns.forEach((b, i) => b.addEventListener('click', () => show(i, true)));
+    v.addEventListener('ended', () => show(cur + 1, !reduceMotion || !v.muted));
+  });
+}
+
 /* setupCopy
    Copies the email address to the clipboard; if the clipboard is refused,
    selects the address so it can be copied by hand. */
@@ -1493,6 +1537,7 @@ function setupNav() {
 function boot() {
   setupClips();
   setupLoops();
+  setupViews();
   setupCopy();
   setupNav();
   const hero = createHero();
