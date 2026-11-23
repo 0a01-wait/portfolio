@@ -54,7 +54,7 @@
   --s-lead: clamp(1.125rem, 1rem + 0.4vw, 1.3125rem);
   --s-title: clamp(1.55rem, 1.2rem + 1vw, 2.125rem);
   --s-section: clamp(2.75rem, 1.8rem + 3.6vw, 5rem);
-  --s-hero: min(14rem, calc((100vw - 2 * var(--gutter) - 25rem) / 4.9));
+  --s-hero: min(12rem, calc((100vw - 2 * var(--gutter) - 27rem) / 5.3));  /* name is ~4.7em wide: this keeps clear room before the intro text */
 
   --gutter: clamp(1rem, 0.4rem + 2.6vw, 3rem);
   --maxw: 1440px;
@@ -108,14 +108,15 @@ h1, h2, h3 { text-wrap: balance; }
 .hero-inner {
   width: 100%; max-width: var(--maxw); margin-inline: auto;
   padding: 0 var(--gutter) clamp(1.75rem, 4.5vw, 3.75rem);
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 22rem); gap: 1.5rem 3rem; align-items: end;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 20rem); gap: 1.5rem 3rem; align-items: end;
 }
 .hero h1 {
   margin: 0; font-family: var(--f-display); font-weight: 600; font-size: var(--s-hero);
   line-height: 0.85; letter-spacing: -0.045em;
+  padding-bottom: 0.12em;  /* room for the descender of the g, so nothing below can touch it */
 }
 .hero h1 .us { color: var(--cadmium); }
-.hero-side { display: grid; gap: 1rem; padding-bottom: 0.5rem; }
+.hero-side { display: grid; gap: 1rem; padding-bottom: 0.5rem; justify-self: end; }
 .hero-line { margin: 0; font-size: var(--s-lead); line-height: 1.4; }
 .hero-note { margin: 0; font-family: var(--f-mono); font-size: 0.875rem; color: var(--ash); letter-spacing: 0.03em; line-height: 1.5; }
 
@@ -238,13 +239,18 @@ h1, h2, h3 { text-wrap: balance; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
-  :root { --s-hero: min(9rem, calc((100vw - 2 * var(--gutter)) / 4.9)); }
-  .hero-inner { grid-template-columns: minmax(0, 1fr); }
+  :root { --s-hero: min(9rem, calc((100vw - 2 * var(--gutter) - 19rem) / 5.1)); }
+  .hero-inner { grid-template-columns: minmax(0, 1fr) minmax(0, 15rem); gap: 1rem 1.5rem; }
   .section-head, .about-body, .studio, .clips { grid-template-columns: minmax(0, 1fr); }
   .clip-fig { grid-column: auto; }
   .works { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .works > .work:nth-child(n) { grid-column: auto; margin-top: 0; }
   .works > .work:nth-child(1) { grid-column: 1 / -1; }
+}
+@media (max-width: 700px) {
+  :root { --s-hero: min(9rem, calc((100vw - 2 * var(--gutter)) / 4.9)); }
+  .hero-inner { grid-template-columns: minmax(0, 1fr); }
+  .hero-side { justify-self: start; }
 }
 @media (max-width: 600px) {
   .works, .studio dl { grid-template-columns: minmax(0, 1fr); }
