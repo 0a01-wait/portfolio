@@ -257,8 +257,8 @@ h1, h2, h3 { text-wrap: balance; }
   .works > .work:nth-child(n) { grid-column: auto; }
   .works > .work:nth-child(3) { --ar: 4 / 5; }
   .nav { font-size: 0.75rem; }
-  .views { top: 0.75rem; right: 0.75rem; bottom: auto; }
-  .view { padding: 0.5rem 0.6rem; }
+  .views { top: 0.75rem; right: 0.75rem; bottom: auto; left: 0.75rem; flex-wrap: wrap; justify-content: flex-end; }
+  .view { padding: 0.5rem 0.6rem; white-space: nowrap; }
   .nav-mark { display: none; }
   .hero::after { height: 78%; background: linear-gradient(to top, var(--wall) 0%, var(--wall) 22%, rgba(17,16,15,.82) 55%, rgba(17,16,15,0) 100%); }
   .nav { justify-content: flex-end; }
@@ -310,6 +310,7 @@ h1, h2, h3 { text-wrap: balance; }
             <button class="view" type="button" aria-pressed="false" data-src="oramic-hud.mp4" data-poster="oramic-hud.jpg" data-label="the HUD, playing a video">HUD</button>
             <button class="view" type="button" aria-pressed="false" data-src="oramic-transit-hud.mp4" data-poster="oramic-transit-hud.jpg" data-label="the HUD, playing subway and taxi data">Transit HUD</button>
             <button class="view" type="button" aria-pressed="false" data-src="oramic-map.mp4" data-poster="oramic-map.jpg" data-label="the picture alone, subway and taxi data">Map</button>
+            <button class="view" type="button" aria-pressed="false" data-src="oramic-live-mta.mp4" data-poster="oramic-live-mta.jpg" data-label="a live MTA map, every train running now, one train's next stops">Live MTA</button>
           </div>
         </div>
         <figcaption class="label">
@@ -1481,24 +1482,43 @@ function setupLoops() {
    first), so all of them are seen without a click. Sound stays as it was
    (muted or not), and with reduced motion a clip only plays once Sound or
    a view button has been pressed. The visibility handling (play on
-   screen, pause off it) is setupLoops'. */
+   screen, pause off it) is setupLoops'.
+   A button with no data-src is a still picture (Live MTA): the video is
+   emptied so only its poster shows, and after STILL_HOLD_MS on screen the
+   next clip follows, as if the still had "ended". The hold only counts
+   while the tile is on screen and the tab is in view, and with reduced
+   motion (Sound off) the still stays until a button is pressed. */
+const STILL_HOLD_MS = 8000;   // how long a still view stays before the next clip (5000–15000)
 function setupViews() {
   document.querySelectorAll('.views').forEach(group => {
     const v = group.parentElement.querySelector('video');
     const btns = [...group.querySelectorAll('.view')];
     if (!v || !btns.length) return;
     let cur = Math.max(0, btns.findIndex(b => b.getAttribute('aria-pressed') === 'true'));
+    let onScreen = false, holdTimer = 0;
+    new IntersectionObserver(e => { onScreen = e[0].isIntersecting; }).observe(v);
+    const autoNext = () => !reduceMotion || !v.muted;
+    const hold = () => {
+      clearTimeout(holdTimer);
+      holdTimer = setTimeout(() => {
+        if (btns[cur].dataset.src) return;
+        if (onScreen && document.visibilityState === 'visible' && autoNext()) show(cur + 1, true);
+        else hold();
+      }, STILL_HOLD_MS);
+    };
     const show = (i, play) => {
       cur = (i + btns.length) % btns.length;
       const b = btns[cur];
+      clearTimeout(holdTimer);
       btns.forEach(x => x.setAttribute('aria-pressed', String(x === b)));
       v.poster = b.dataset.poster;
+      v.setAttribute('aria-label', 'Oramic, ' + (b.dataset.src ? 'video' : 'picture') + ': ' + b.dataset.label);
+      if (!b.dataset.src) { v.pause(); v.removeAttribute('src'); v.load(); hold(); return; }
       v.src = b.dataset.src;
-      v.setAttribute('aria-label', 'Oramic, video: ' + b.dataset.label);
       if (play) { v.preload = 'auto'; const p = v.play(); if (p && p.catch) p.catch(() => {}); }
     };
     btns.forEach((b, i) => b.addEventListener('click', () => show(i, true)));
-    v.addEventListener('ended', () => show(cur + 1, !reduceMotion || !v.muted));
+    v.addEventListener('ended', () => show(cur + 1, autoNext()));
   });
 }
 
